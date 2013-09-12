@@ -31,7 +31,7 @@
 #endif
 
 #ifndef VERBOSE_DEBUG
-#define VERBOSE_DEBUG 0
+#define VERBOSE_DEBUG 1
 #endif
 
 #include "assert-macros.h"
@@ -41,6 +41,7 @@
 #include "smcp-internal.h"
 #include "coap.h"
 #include "smcp-curl_proxy.h"
+#include "url-helpers.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -205,6 +206,7 @@ smcp_curl_proxy_request_handler(
 
 	require_action(request!=NULL,bail,ret = SMCP_STATUS_MALLOC_FAILURE);
 
+        printf("method: %d\n", (int)method);
 	switch(method) {
 		case COAP_METHOD_GET: curl_easy_setopt(request->curl, CURLOPT_CUSTOMREQUEST, "GET"); break;
 		case COAP_METHOD_PUT: curl_easy_setopt(request->curl, CURLOPT_PUT, 1L); break;
@@ -215,46 +217,27 @@ smcp_curl_proxy_request_handler(
 			break;
 	}
 
+        curl_easy_setopt(request->curl, CURLOPT_URL, "https://api.xively.com/v2/feeds");
 	{
-		coap_option_key_t key;
-		const uint8_t* value;
-		size_t value_len;
-		while((key=smcp_inbound_next_option(&value, &value_len))!=COAP_OPTION_INVALID) {
-			if(key==COAP_OPTION_PROXY_URI) {
-				char uri[value_len+1];
-				memcpy(uri,value,value_len);
-				uri[value_len] = 0;
-				curl_easy_setopt(request->curl, CURLOPT_URL, uri);
-				assert_printf("CuRL URL: \"%s\"",uri);
-				ret = 0;
-			} else if(key==COAP_OPTION_URI_HOST) {
-			} else if(key==COAP_OPTION_URI_PORT) {
-			} else if(key==COAP_OPTION_URI_PATH) {
-			} else if(key==COAP_OPTION_URI_QUERY) {
-			} else if(key==COAP_OPTION_CONTENT_TYPE || key==COAP_OPTION_ACCEPT) {
-				const char* option_name = coap_option_key_to_cstr(key, false);
-				const char* value_string = coap_content_type_to_cstr(value[1]);
-				char header[strlen(option_name)+strlen(value_string)+3];
-				strcpy(header,option_name);
-				strcat(header,": ");
-				strcat(header,value_string);
-				headerlist = curl_slist_append(headerlist, header);
-				assert_printf("CuRL HEADER: \"%s\"",header);
-			} else {
-				if(coap_option_value_is_string(key)) {
-					const char* option_name = coap_option_key_to_cstr(key, false);
-					char header[strlen(option_name)+value_len+3];
-					strcpy(header,option_name);
-					strcat(header,": ");
-					strncat(header,(const char*)value,value_len);
-					assert_printf("CuRL HEADER: \"%s\"",header);
-					headerlist = curl_slist_append(headerlist, header);
-				}
-			}
-		}
+                char* content = NULL;
+                size_t max_len = 0;
+                char * url_w;
+                char * url;
+
+                url = smcp_inbound_get_path(url_w, SMCP_GET_PATH_LEADING_SLASH|SMCP_GET_PATH_INCLUDE_QUERY);
+                printf("Path: %s\n", url);
+
+		//while((key=smcp_inbound_next_option(&value, &value_len))!=COAP_OPTION_INVALID) {
+                //  if(key==COAP_OPTION_URI_PATH) {
+                //    const char* option_name = coap_option_key_to_cstr(key, false);
+                //    const char* url[MAX_URL_SIZE];
+                //    url_encode_cstr(url, value, MAX_URL_SIZE);
+                //    printf("%s: %s\n", option_name, url);
+                //  }
+		//}
 	}
 
-	require_noerr(ret,bail);
+	//require_noerr(ret,bail);
 
 	if(smcp_inbound_get_content_len()) {
 		size_t len = smcp_inbound_get_content_len();
