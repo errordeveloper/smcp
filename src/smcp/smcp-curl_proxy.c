@@ -223,14 +223,14 @@ smcp_curl_proxy_request_handler(
 	{
                 char *url, *url_base, *url_path;
 
-                url_path = smcp_inbound_get_path(url_path, SMCP_GET_PATH_LEADING_SLASH|SMCP_GET_PATH_INCLUDE_QUERY);
+                url_path = smcp_inbound_get_path(NULL, SMCP_GET_PATH_LEADING_SLASH|SMCP_GET_PATH_INCLUDE_QUERY);
 
                 url_base = (char *) getenv("FOXY_URL_BASE");
                 if(!url_base) {
-                  url = malloc(strlen(FOXY_DEFAULT_URL_BASE)+strlen(url_path));
+                  url = calloc(1, strlen(FOXY_DEFAULT_URL_BASE)+strlen(url_path));
                   strcpy(url, FOXY_DEFAULT_URL_BASE);
                 } else {
-                  url = malloc(strlen(url_base)+strlen(url_path));
+                  url = calloc(1, strlen(url_base)+strlen(url_path));
                   strcpy(url, url_base);
                 }
 
