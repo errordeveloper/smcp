@@ -47,7 +47,6 @@
 #include <sys/errno.h>
 #include <unistd.h>
 #include <signal.h>
-#include <string.h>
 #include <ctype.h>
 #include <poll.h>
 #include <sys/select.h>
@@ -278,7 +277,7 @@ main(
         // Set up the node router.
         smcp_set_default_request_handler(smcp, &smcp_node_router_handler, &root_node);
 
-        smcp_set_proxy_url(smcp,getenv("COAP_PROXY_URL"));
+        //smcp_set_proxy_url(smcp,getenv("COAP_PROXY_URL"));
         foxy_make_node();
 
         syslog(LOG_NOTICE,"Daemon started. Listening on port %d.",smcp_get_port(smcp));

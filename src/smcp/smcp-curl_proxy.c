@@ -44,6 +44,9 @@
 #include "url-helpers.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define FOXY_DEFAULT_URL_BASE "https://google.com/search"
 
 typedef struct smcp_curl_request_s {
 	CURL* curl;
@@ -190,7 +193,7 @@ smcp_curl_proxy_request_handler(
 ) {
 	smcp_status_t ret = SMCP_STATUS_NOT_ALLOWED;
 	smcp_curl_request_t request = NULL;
-	struct curl_slist *headerlist=NULL;
+	//struct curl_slist *headerlist=NULL;
 	smcp_method_t method = smcp_inbound_get_code();
 
 	//require_action(method<=COAP_METHOD_DELETE,bail,ret = SMCP_STATUS_NOT_ALLOWED);
@@ -217,24 +220,24 @@ smcp_curl_proxy_request_handler(
 			break;
 	}
 
-        curl_easy_setopt(request->curl, CURLOPT_URL, "https://api.xively.com/v2/feeds");
 	{
-                char* content = NULL;
-                size_t max_len = 0;
-                char * url_w;
-                char * url;
+                char *url, *url_base, *url_path;
 
-                url = smcp_inbound_get_path(url_w, SMCP_GET_PATH_LEADING_SLASH|SMCP_GET_PATH_INCLUDE_QUERY);
+                url_path = smcp_inbound_get_path(url_path, SMCP_GET_PATH_LEADING_SLASH|SMCP_GET_PATH_INCLUDE_QUERY);
+
+                url_base = (char *) getenv("FOXY_URL_BASE");
+                if(!url_base) {
+                  url = malloc(strlen(FOXY_DEFAULT_URL_BASE)+strlen(url_path));
+                  strcpy(url, FOXY_DEFAULT_URL_BASE);
+                } else {
+                  url = malloc(strlen(url_base)+strlen(url_path));
+                  strcpy(url, url_base);
+                }
+
+                strcat(url, url_path);
+
                 printf("Path: %s\n", url);
-
-		//while((key=smcp_inbound_next_option(&value, &value_len))!=COAP_OPTION_INVALID) {
-                //  if(key==COAP_OPTION_URI_PATH) {
-                //    const char* option_name = coap_option_key_to_cstr(key, false);
-                //    const char* url[MAX_URL_SIZE];
-                //    url_encode_cstr(url, value, MAX_URL_SIZE);
-                //    printf("%s: %s\n", option_name, url);
-                //  }
-		//}
+                curl_easy_setopt(request->curl, CURLOPT_URL, url);
 	}
 
 	//require_noerr(ret,bail);
@@ -248,13 +251,13 @@ smcp_curl_proxy_request_handler(
 		curl_easy_setopt(request->curl, CURLOPT_READDATA, (void *)request);
 	}
 
-	curl_easy_setopt(request->curl, CURLOPT_USERAGENT, "smcp-curl-proxy/1.0");
-	curl_easy_setopt(request->curl, CURLOPT_HTTPHEADER, headerlist),headerlist=NULL;
+	//curl_easy_setopt(request->curl, CURLOPT_USERAGENT, "smcp-curl-proxy/1.0"); // XXX: why the hell we seem to segfault on this?
+	//curl_easy_setopt(request->curl, CURLOPT_HTTPHEADER, headerlist),headerlist=NULL;
 	curl_easy_setopt(request->curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 	curl_easy_setopt(request->curl, CURLOPT_WRITEDATA, (void *)request);
 
 	ret = smcp_start_async_response(&request->async_response,0);
-	require_noerr(ret,bail);
+	//require_noerr(ret,bail);
 
 	if(node->curl_multi_handle)
 		curl_multi_add_handle(node->curl_multi_handle, request->curl);
@@ -262,8 +265,8 @@ smcp_curl_proxy_request_handler(
 		curl_easy_perform(request->curl);
 
 bail:
-	if(headerlist)
-		curl_slist_free_all(headerlist);
+	//if(headerlist)
+	//	curl_slist_free_all(headerlist);
 
 	if(ret && request)
 		smcp_curl_request_release(request);

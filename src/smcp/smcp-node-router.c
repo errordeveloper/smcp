@@ -31,7 +31,7 @@
 #endif
 
 #ifndef VERBOSE_DEBUG
-#define VERBOSE_DEBUG 0
+#define VERBOSE_DEBUG 1
 #endif
 
 #include "assert-macros.h"
