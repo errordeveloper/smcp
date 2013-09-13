@@ -272,13 +272,43 @@ main(
         }
 
         // Set up the root node.
-        smcp_node_init(&root_node,NULL,NULL);
+        //smcp_node_init(&root_node,NULL,NULL);
+        smcp_curl_proxy_node_init(&root_node,NULL,NULL);
 
         // Set up the node router.
-        smcp_set_default_request_handler(smcp, &smcp_node_router_handler, &root_node);
+        smcp_set_default_request_handler(smcp, &smcp_curl_proxy_request_handler, &root_node);
+        //smcp_node_t ret = NULL;
+        //smcp_node_t (*init_func)(smcp_node_t self, smcp_node_t parent, const char* name, const char* argument) = NULL;
+        //smcp_status_t (*process_func)(smcp_node_t self) = NULL;
+        //smcp_status_t (*update_fdset_func)(
+        //        smcp_node_t node,
+        //        fd_set *read_fd_set,
+        //        fd_set *write_fd_set,
+        //        fd_set *error_fd_set,
+        //        int *max_fd,
+        //        cms_t *timeout
+        //) = NULL;
+
+        //init_func = &smcp_curl_proxy_node_init;
+        //update_fdset_func = &smcp_curl_proxy_node_update_fdset;
+        //process_func = &smcp_curl_proxy_node_process;
+
+        //if(init_func) {
+        //        ret = (*init_func)( NULL, &root_node, "proxy", NULL );
+        //        if(!ret) {
+        //                syslog(LOG_WARNING,"Init method failed");
+        //        }
+        //}
+
+        //if(ret && (process_func || update_fdset_func)) {
+        //        async_io_module[async_io_module_count].node = ret;
+        //        async_io_module[async_io_module_count].update_fdset = update_fdset_func;
+        //        async_io_module[async_io_module_count].process = process_func;
+        //        async_io_module_count++;
+        //}
 
         //smcp_set_proxy_url(smcp,getenv("COAP_PROXY_URL"));
-        foxy_make_node();
+        //foxy_make_node();
 
         syslog(LOG_NOTICE,"Daemon started. Listening on port %d.",smcp_get_port(smcp));
 
