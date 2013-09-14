@@ -46,7 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define FOXY_DEFAULT_URL_BASE "https://google.com/search"
+#define FOXY_DEFAULT_URL_BASE "https://www.google.com"
 
 typedef struct smcp_curl_request_s {
 	CURL* curl;
@@ -223,7 +223,7 @@ smcp_curl_proxy_request_handler(
 	{
                 char *url, *url_base, *url_path;
 
-                url_path = smcp_inbound_get_path(NULL, SMCP_GET_PATH_LEADING_SLASH|SMCP_GET_PATH_INCLUDE_QUERY);
+                url_path = smcp_inbound_get_path(NULL, SMCP_GET_PATH_INCLUDE_QUERY);
 
                 url_base = (char *) getenv("FOXY_URL_BASE");
                 if(!url_base) {
@@ -234,7 +234,7 @@ smcp_curl_proxy_request_handler(
                   strcpy(url, url_base);
                 }
 
-                strcat(url, url_path);
+                strcat(url, &url_path[strlen("proxy")]);
 
                 printf("Path: %s\n", url);
                 curl_easy_setopt(request->curl, CURLOPT_URL, url);
